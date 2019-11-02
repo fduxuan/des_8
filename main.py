@@ -15,7 +15,6 @@ def expand_data(data, mode=1):
     # 最后增加一行，第一个字节为mod值
     if mode==1:
         res.append(str(mod) + "0" * 7)
-        print(res)
     return res, length
 
 
@@ -138,46 +137,39 @@ def encrypt_decrypt(key, data, mode = 1):
 
 
 # mode 默认为1 即加密
-def main_encrypt(file, key, mode=1):
+def main_encrypt(data, key, mode=1):
     # 初始化向量为全0
     IV = [0] * 64
     ans = []
     write_data = ""
-    with open(file, "r", encoding='utf-8') as f:
-        data = f.read()
-        # 得到分组64位字节
-        group, length= expand_data(data, mode)
-        for byte in group:
-            text = init_batch(byte)
-            if mode == 1:
-                text = xor(text, IV)
-                res = encrypt_decrypt(key, text,mode)
-                IV = res
-                print(init_string(IV))
-            else:
-                res = encrypt_decrypt(key, text, mode)
-                print(init_string(IV))
-                res = xor(res, IV)
-                IV = text
+    key = init_batch(key)
+    # 得到分组64位字节
+    group, length = expand_data(data, mode)
+    print(group)
+    for byte in group:
+        text = init_batch(byte)
+        if mode == 1:
+            text = xor(text, IV)
+            res = encrypt_decrypt(key, text, mode)
+            IV = res
+        else:
+            res = encrypt_decrypt(key, text, mode)
+            res = xor(res, IV)
+            IV = text
 
-            write_data += init_string(res)
-            ans.append(init_string(res))
-
-        print(ans)
-        if mode == 0:
-            mod = int(write_data[-8])
-            if mod == 0:
-                write_data = write_data[: -8]
-            else:
-                write_data = write_data[: -16+mod]
-    with open("res1.txt", "w", encoding='utf-8') as f:
-        f.write(write_data)
+        write_data += init_string(res)
+        ans += res
+    print(write_data)
+    print(ans)
+    if mode == 0:
+        mod = int(write_data[-8])
+        if mod == 0:
+            write_data = write_data[: -8]
+        else:
+            write_data = write_data[: -16+mod]
+    return write_data, ans
 
 
 
 
 
-
-if __name__ == "__main__":
-    key = init_batch("iloveyou")
-    main_encrypt("res.txt", key, 0)
