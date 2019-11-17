@@ -1,4 +1,4 @@
-# 8轮DES的编程实现
+# RSA+8轮DES的编程实现
 
 **复旦大学计算机科学与技术    16307130335      方煊杰**
 
@@ -299,25 +299,143 @@ $$
 
 
 
-## 3 使用说明
 
-### 3.1 界面设计
+
+## 3. RSA框架
+
+### 3.1 大质数的生成
+
+采用米勒-拉宾素性检测来判断随机生成的是否为素数。
+
+```python
+# 检测大整数是否是素数,如果是素数,就返回True,否则返回False
+def rabin_miller(num):
+    s = num - 1
+    t = 0
+    while s % 2 == 0:
+        s = s // 2
+        t += 1
+
+    for trials in range(5):
+        a = random.randrange(2, num - 1)
+        v = pow(a, s, num)
+        if v != 1:
+            i = 0
+            while v != (num - 1):
+                if i == t - 1:
+                    return False
+                else:
+                    i = i + 1
+                    v = (v ** 2) % num
+    return True
+```
+
+米勒-拉宾素性检测主要基于：
+
+**如果p是素数，x是小于p的正整数，且x^2 = 1 mod p，则x要么为1，要么为p-1。**
+
+由于这需要数论证明，所以在这里就不证明了。
+
+```python
+def get_prime(key_size=64):
+  while True:
+    num = random.randrange(2 ** (key_size - 1), 2 ** key_size)
+    if is_prime(num):
+      return num
+```
+
+
+
+### 3.2 生成密钥
+
+生成两个64位的P,Q之后，再进行rsa算法生成密钥：
+
+```python
+def gen_key(p, q):
+  n = p * q
+  fy = (p - 1) * (q - 1)   # 计算与n互质的整数个数 欧拉函数
+  e = 3889          # 选取e  一般选取65537
+  # generate d
+  a = e
+  b = fy
+  r, x, y = ext_gcd(a, b)
+  print(x)  
+  d = x
+  # 返回：  公钥   私钥
+  return  (n, e), (n, d)
+```
+
+这里采用了扩展欧几里的算法：
+
+```python
+# 计算 ax + by = 1中的x与y的整数解（a与b互质）
+def ext_gcd(a, b):
+  if b == 0:
+    x1 = 1
+    y1 = 0
+    x = x1
+    y = y1
+    r = a
+    return r, x, y
+  else:
+    r, x1, y1 = ext_gcd(b, a % b)
+    x = y1
+    y = x1 - a // b * y1
+    return r, x, y
+
+```
+
+
+
+### 3.3 加解密
+
+```python
+# 加密 m是被加密的信息 加密成为c
+def encrypt(m, pubkey):
+  n = pubkey[0]
+  e = pubkey[1]
+  c = exp_mode(m, e, n)
+  return c
+
+
+# 解密 c是密文，解密为明文m
+def decrypt(c, selfkey):
+  n = selfkey[0]
+  d = selfkey[1]
+  m = exp_mode(c, d, n)
+  return m
+
+```
+
+
+
+## 4 使用说明
+
+### 4.1 界面设计
 
 采用tkinker简单设计
 
-![截屏2019-11-02下午1.03.10](/Users/fang/Desktop/%E6%88%AA%E5%B1%8F2019-11-02%E4%B8%8B%E5%8D%881.03.10.png)
+![](/Users/fang/Desktop/截屏2019-11-17上午1.44.56.png)
+
+保存为miwen.txt：
+
+![](/Users/fang/Desktop/截屏2019-11-17上午1.46.21.png)
 
 
 
-### 3.2 说明
+再导入密文进行解密：
+
+![](/Users/fang/Desktop/截屏2019-11-17上午1.47.17.png)
 
 
+
+### 4.2 说明
+
+* 对输入先进行CBC模式的链式加密，再对加密后每8个字节的askii进行rsa加密
 
 - 可以在输入框中直接输入要加密的字符串（为了显示方便，所以并不读取二进制文件而是原本的字符）
 
-- 输出显示为二进制
-
-- 保存输出文件也为将二进制处理为字符的编码后文件
+- 输出显示为解密后原本输入或者加密后的int型数据
 
 - 支持导入文件
 
