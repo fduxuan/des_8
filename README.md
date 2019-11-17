@@ -415,17 +415,17 @@ def decrypt(c, selfkey):
 
 采用tkinker简单设计
 
-![](/Users/fang/Desktop/截屏2019-11-17上午1.44.56.png)
+![](img/截屏2019-11-17上午1.44.56.png)
 
 保存为miwen.txt：
 
-![](/Users/fang/Desktop/截屏2019-11-17上午1.46.21.png)
+![](img/截屏2019-11-17上午1.46.21.png)
 
 
 
 再导入密文进行解密：
 
-![](/Users/fang/Desktop/截屏2019-11-17上午1.47.17.png)
+![](img/截屏2019-11-17上午1.47.17.png)
 
 
 
